@@ -30,7 +30,7 @@ const isDevelopmentChain = developmentChains.includes(network.name);
         stakingToken.transferOwnership(staking);
       });
 
-      describe("StakingToken", () => {
+      describe("StakingToken Contract", () => {
         it("constructor() Initializes correctly", async () => {
           const ST_NAME = await stakingToken.name();
           const ST_SYMBOL = await stakingToken.symbol();
@@ -51,10 +51,41 @@ const isDevelopmentChain = developmentChains.includes(network.name);
 
         it("burn() Reverts when not using Owner account", async () => {
           await expect(
-            stakingToken.burn(deployer, 0)
+            stakingToken.burn(deployer, 123)
           ).to.be.revertedWithCustomError(
             stakingToken,
             "OwnableUnauthorizedAccount"
+          );
+        });
+      });
+
+      describe("Staking Contract", () => {
+        it("constructor() initializes correctly", async () => {
+          assert(
+            await staking.s_stakingToken(),
+            await stakingToken.getAddress()
+          );
+          assert(
+            await staking.s_priceFeed(),
+            await ethPriceFeedMock.getAddress()
+          );
+        });
+
+        it("stakeETH() Reverts if period less than minimum", async () => {
+          await expect(staking.stakeETH(1)).to.be.revertedWithCustomError(
+            staking,
+            "Staking__StakingPeriodTooShort"
+          );
+        });
+
+        it("stakeETH() Reverts if msg.value is 0", async () => {
+          const MINIMUM = await staking.MINIMUM_STAKING_PERIOD();
+          console.log(MINIMUM);
+          await expect(
+            staking.stakeETH(Number(MINIMUM) + 1)
+          ).to.be.revertedWithCustomError(
+            staking,
+            "Staking__MustBeMoreThanZero"
           );
         });
       });
