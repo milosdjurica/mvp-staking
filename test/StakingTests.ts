@@ -40,9 +40,18 @@ const isDevelopmentChain = developmentChains.includes(network.name);
           assert.equal(OWNER, await staking.getAddress());
         });
 
-        it("mint() Reverts when using notOwner account", async () => {
+        it("mint() Reverts when not using Owner account", async () => {
           await expect(
             stakingToken.mint(deployer, 123)
+          ).to.be.revertedWithCustomError(
+            stakingToken,
+            "OwnableUnauthorizedAccount"
+          );
+        });
+
+        it("burn() Reverts when not using Owner account", async () => {
+          await expect(
+            stakingToken.burn(deployer, 0)
           ).to.be.revertedWithCustomError(
             stakingToken,
             "OwnableUnauthorizedAccount"
