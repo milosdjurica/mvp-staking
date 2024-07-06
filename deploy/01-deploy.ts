@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let priceFeedAddress: Address;
 
   if (IS_DEV_CHAIN) {
-    // TODO -> Create mocks and deploy it
+    priceFeedAddress = (await deployments.get("EthPriceFeedMock")).address;
   } else {
     priceFeedAddress = SEPOLIA_PRICE_FEED_ADDRESS;
   }
@@ -39,7 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const stakingToken: StakingToken = await ethers.getContract(
-    "StakingCoin",
+    "StakingToken",
     deployer
   );
 
