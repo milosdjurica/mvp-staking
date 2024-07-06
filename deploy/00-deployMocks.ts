@@ -20,9 +20,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       log: true,
     });
 
-    console.log("Deployed");
-    await deployments.save("EthPriceFeedMock", ethPriceFeedMock);
-
     log("MockV3Aggregator deployed!!!");
     log("===============================================================");
   }
