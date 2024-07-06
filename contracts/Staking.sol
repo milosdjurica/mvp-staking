@@ -8,15 +8,15 @@ contract Staking {
     error Staking__StakingPeriodTooShort();
     error Staking__MustBeMoreThanZero();
 
-    event Staked(address userAddress, uint256 amountStaked, uint256 stakingPeriod);
+    event Staked(address indexed userAddress, uint256 indexed amountStaked, uint256 indexed stakingPeriod);
 
     uint256 public constant MINIMUM_STAKING_PERIOD = 180 days;
 
     StakingToken public s_stakingToken;
     AggregatorV3Interface public s_priceFeed;
 
-    mapping(address => uint256) s_stakedAmount;
-    mapping(address => uint256) s_stakingEndTime;
+    mapping(address => uint256) public s_stakedAmount;
+    mapping(address => uint256) public s_stakingEndTime;
 
     constructor(address stakingTokenAddress_, address priceFeedAddress_) {
         s_stakingToken = StakingToken(stakingTokenAddress_);
@@ -42,6 +42,6 @@ contract Staking {
         (, int256 price,,,) = s_priceFeed.latestRoundData();
 
         uint256 ethPriceUSD = uint256(price) * 1e10;
-        return (amount_ * ethPriceUSD) / 10e18;
+        return (amount_ * ethPriceUSD) / 1e18;
     }
 }

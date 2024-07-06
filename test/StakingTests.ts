@@ -2,7 +2,12 @@ import { network, deployments, ethers } from "hardhat";
 import { assert, expect } from "chai";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
-import { developmentChains } from "../utils/helperConfig";
+import {
+  developmentChains,
+  ETH_USD_PRICE,
+  MINIMUM_STAKING_PERIOD,
+  PRECISION_18,
+} from "../utils/helperConfig";
 import { MockV3Aggregator, Staking, StakingToken } from "../typechain-types";
 
 const isDevelopmentChain = developmentChains.includes(network.name);
@@ -79,14 +84,34 @@ const isDevelopmentChain = developmentChains.includes(network.name);
         });
 
         it("stakeETH() Reverts if msg.value is 0", async () => {
-          const MINIMUM = await staking.MINIMUM_STAKING_PERIOD();
-          console.log(MINIMUM);
           await expect(
-            staking.stakeETH(Number(MINIMUM) + 1)
+            staking.stakeETH(MINIMUM_STAKING_PERIOD + 1)
           ).to.be.revertedWithCustomError(
             staking,
             "Staking__MustBeMoreThanZero"
           );
+        });
+
+        it("stakeETH() Stakes successfully", async () => {
+          const AMOUNT_TO_STAKE = ethers.parseEther("1");
+          await staking.stakeETH(MINIMUM_STAKING_PERIOD + 1, {
+            value: AMOUNT_TO_STAKE,
+          });
+
+          const stakedAmount = await staking.s_stakedAmount(deployer);
+          const stakingEndTime = await staking.s_stakingEndTime(deployer);
+          const latestBlockTimeStamp = (await ethers.provider.getBlock(
+            "latest"
+          ))!!!!!.timestamp;
+          const tokensOwned = await stakingToken.balanceOf(deployer);
+
+          // TODO check event
+          assert.equal(AMOUNT_TO_STAKE, stakedAmount);
+          assert.equal(
+            stakingEndTime,
+            MINIMUM_STAKING_PERIOD + 1 + latestBlockTimeStamp
+          );
+          assert.equal(Number(tokensOwned) / 1e18, ETH_USD_PRICE);
         });
       });
     });
