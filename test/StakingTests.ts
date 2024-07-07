@@ -3,6 +3,7 @@ import { assert, expect } from "chai";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 import {
+  AMOUNT_TO_STAKE,
   developmentChains,
   ETH_USD_PRICE,
   MINIMUM_STAKING_PERIOD,
@@ -88,12 +89,11 @@ const isDevelopmentChain = developmentChains.includes(network.name);
             staking.stakeETH(MINIMUM_STAKING_PERIOD + 1)
           ).to.be.revertedWithCustomError(
             staking,
-            "Staking__MustBeMoreThanZero"
+            "Staking__AmountMustBeMoreThanZero"
           );
         });
 
-        it("stakeETH() Stakes successfully", async () => {
-          const AMOUNT_TO_STAKE = ethers.parseEther("1");
+        it("stakeETH() Stakes successfully and changes state variables", async () => {
           await staking.stakeETH(MINIMUM_STAKING_PERIOD + 1, {
             value: AMOUNT_TO_STAKE,
           });
@@ -103,16 +103,49 @@ const isDevelopmentChain = developmentChains.includes(network.name);
           const latestBlockTimeStamp = (await ethers.provider.getBlock(
             "latest"
           ))!!!!!.timestamp;
-          const tokensOwned = await stakingToken.balanceOf(deployer);
 
-          // TODO check event
           assert.equal(AMOUNT_TO_STAKE, stakedAmount);
           assert.equal(
             stakingEndTime,
-            MINIMUM_STAKING_PERIOD + 1 + latestBlockTimeStamp
+            BigInt(MINIMUM_STAKING_PERIOD + 1 + latestBlockTimeStamp)
           );
+        });
+
+        it("stakeETH() Stakes successfully and mints and emits event", async () => {
+          await expect(
+            staking.stakeETH(MINIMUM_STAKING_PERIOD + 1, {
+              value: AMOUNT_TO_STAKE,
+            })
+          )
+            .to.emit(staking, "Staked")
+            .withArgs(
+              deployer.address,
+              AMOUNT_TO_STAKE,
+              MINIMUM_STAKING_PERIOD + 1
+            );
+
+          const tokensOwned = await stakingToken.balanceOf(deployer);
           assert.equal(Number(tokensOwned) / 1e18, ETH_USD_PRICE);
         });
+      });
+
+      it("unstakeETH() Reverts if NotEnoughTimePassed", async () => {
+        const AMOUNT_TO_STAKE = ethers.parseEther("1");
+        await staking.stakeETH(MINIMUM_STAKING_PERIOD + 1, {
+          value: AMOUNT_TO_STAKE,
+        });
+
+        await expect(staking.unstakeETH()).to.be.revertedWithCustomError(
+          staking,
+          "Staking__NotEnoughTimePassed"
+        );
+      });
+
+      it("unstakeETH() Reverts if user didn't previously staked", async () => {
+        await expect(staking.unstakeETH()).to.be.revertedWithCustomError(
+          staking,
+          "Staking__AmountMustBeMoreThanZero"
+        );
       });
     });
 
