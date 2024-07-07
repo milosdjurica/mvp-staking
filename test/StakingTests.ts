@@ -68,11 +68,11 @@ const isDevelopmentChain = developmentChains.includes(network.name);
       describe("Staking Contract", () => {
         it("constructor() initializes correctly", async () => {
           assert(
-            await staking.s_stakingToken(),
+            await staking.i_stakingToken(),
             await stakingToken.getAddress()
           );
           assert(
-            await staking.s_priceFeed(),
+            await staking.i_priceFeed(),
             await ethPriceFeedMock.getAddress()
           );
         });
