@@ -15,15 +15,15 @@ contract Staking {
 
     uint256 public constant MINIMUM_STAKING_PERIOD = 180 days;
 
-    StakingToken public s_stakingToken;
-    AggregatorV3Interface public s_priceFeed;
+    StakingToken public immutable i_stakingToken;
+    AggregatorV3Interface public immutable i_priceFeed;
 
     mapping(address => uint256) public s_stakedAmount;
     mapping(address => uint256) public s_stakingEndTime;
 
     constructor(address stakingTokenAddress_, address priceFeedAddress_) {
-        s_stakingToken = StakingToken(stakingTokenAddress_);
-        s_priceFeed = AggregatorV3Interface(priceFeedAddress_);
+        i_stakingToken = StakingToken(stakingTokenAddress_);
+        i_priceFeed = AggregatorV3Interface(priceFeedAddress_);
     }
 
     function stakeETH(uint256 stakingPeriod_) external payable {
@@ -35,8 +35,8 @@ contract Staking {
         s_stakedAmount[msg.sender] += msg.value;
         s_stakingEndTime[msg.sender] = block.timestamp + stakingPeriod_;
 
-        s_stakingToken.mint(msg.sender, tokenAmount);
         emit Staked(msg.sender, msg.value, stakingPeriod_);
+        i_stakingToken.mint(msg.sender, tokenAmount);
     }
 
     function unstakeETH() external {
@@ -49,15 +49,15 @@ contract Staking {
         s_stakedAmount[msg.sender] = 0;
         s_stakingEndTime[msg.sender] = 0;
 
-        s_stakingToken.burn(msg.sender, s_stakingToken.balanceOf(msg.sender));
         emit Unstaked(msg.sender);
+        i_stakingToken.burn(msg.sender, i_stakingToken.balanceOf(msg.sender));
 
         (bool success,) = msg.sender.call{value: value}("");
         if (!success) revert Staking__TransferFailed();
     }
 
     function _getTokenAmount(uint256 amount_) internal view returns (uint256) {
-        (, int256 price,,,) = s_priceFeed.latestRoundData();
+        (, int256 price,,,) = i_priceFeed.latestRoundData();
 
         uint256 ethPriceUSD = uint256(price) * 1e10;
         return (amount_ * ethPriceUSD) / 1e18;
