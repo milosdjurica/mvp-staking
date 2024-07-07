@@ -16,7 +16,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   let priceFeedAddress: Address;
 
   if (IS_DEV_CHAIN) {
-    priceFeedAddress = (await deployments.get("EthPriceFeedMock")).address;
+    priceFeedAddress = await (
+      await ethers.getContract("MockV3Aggregator")
+    ).getAddress();
   } else {
     priceFeedAddress = SEPOLIA_PRICE_FEED_ADDRESS;
   }
