@@ -127,25 +127,60 @@ const isDevelopmentChain = developmentChains.includes(network.name);
           const tokensOwned = await stakingToken.balanceOf(deployer);
           assert.equal(Number(tokensOwned) / 1e18, ETH_USD_PRICE);
         });
-      });
 
-      it("unstakeETH() Reverts if NotEnoughTimePassed", async () => {
-        const AMOUNT_TO_STAKE = ethers.parseEther("1");
-        await staking.stakeETH(MINIMUM_STAKING_PERIOD + 1, {
-          value: AMOUNT_TO_STAKE,
+        it("unstakeETH() Reverts if NotEnoughTimePassed", async () => {
+          const AMOUNT_TO_STAKE = ethers.parseEther("1");
+          await staking.stakeETH(MINIMUM_STAKING_PERIOD + 1, {
+            value: AMOUNT_TO_STAKE,
+          });
+
+          await expect(staking.unstakeETH()).to.be.revertedWithCustomError(
+            staking,
+            "Staking__NotEnoughTimePassed"
+          );
         });
 
-        await expect(staking.unstakeETH()).to.be.revertedWithCustomError(
-          staking,
-          "Staking__NotEnoughTimePassed"
-        );
-      });
+        it("unstakeETH() Reverts if user didn't previously staked", async () => {
+          await expect(staking.unstakeETH()).to.be.revertedWithCustomError(
+            staking,
+            "Staking__AmountMustBeMoreThanZero"
+          );
+        });
 
-      it("unstakeETH() Reverts if user didn't previously staked", async () => {
-        await expect(staking.unstakeETH()).to.be.revertedWithCustomError(
-          staking,
-          "Staking__AmountMustBeMoreThanZero"
-        );
+        it("unstakeETH() Unstakes successfully", async () => {
+          const deployerBalanceBefore = await ethers.provider.getBalance(
+            deployer
+          );
+
+          await staking.stakeETH(MINIMUM_STAKING_PERIOD + 1, {
+            value: AMOUNT_TO_STAKE,
+          });
+
+          await ethers.provider.send("evm_increaseTime", [
+            MINIMUM_STAKING_PERIOD + 2,
+          ]);
+          await ethers.provider.send("evm_mine", []);
+
+          await expect(staking.unstakeETH())
+            .to.emit(staking, "Unstaked")
+            .withArgs(deployer);
+
+          const stakedAmount = await staking.s_stakedAmount(deployer);
+          const stakingEndTime = await staking.s_stakingEndTime(deployer);
+          const tokensOwned = await stakingToken.balanceOf(deployer);
+
+          assert.equal(stakedAmount, 0, "Staked amount should be 0");
+          assert.equal(stakingEndTime, 0, "Staking end time should be 0");
+          assert.equal(tokensOwned, 0, "Staking tokens should be burned");
+
+          const deployerBalanceAfter = await ethers.provider.getBalance(
+            deployer
+          );
+          expect(deployerBalanceAfter).to.be.closeTo(
+            deployerBalanceBefore,
+            ethers.parseEther("0.0001") // Gas used
+          );
+        });
       });
     });
 
