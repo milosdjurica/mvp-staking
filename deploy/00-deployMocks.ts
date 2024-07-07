@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import {
   DECIMALS,
   developmentChains,
-  ETH_USD_PRICE,
+  ETH_USD_PRICE_WITH_DECIMALS,
 } from "../utils/helperConfig";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -16,12 +16,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
     const ethPriceFeedMock = await deploy("MockV3Aggregator", {
       from: deployer,
-      args: [DECIMALS, ETH_USD_PRICE],
+      args: [DECIMALS, ETH_USD_PRICE_WITH_DECIMALS],
       log: true,
     });
-
-    console.log("Deployed");
-    await deployments.save("EthPriceFeedMock", ethPriceFeedMock);
 
     log("MockV3Aggregator deployed!!!");
     log("===============================================================");
