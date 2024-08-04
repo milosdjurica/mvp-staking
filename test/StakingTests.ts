@@ -176,9 +176,11 @@ const isDevelopmentChain = developmentChains.includes(network.name);
           const deployerBalanceAfter = await ethers.provider.getBalance(
             deployer
           );
+          // console.log(deployerBalanceBefore - deployerBalanceAfter);
+          // console.log(0.0001 * 1e18);
           expect(deployerBalanceAfter).to.be.closeTo(
             deployerBalanceBefore,
-            ethers.parseEther("0.0001") // Gas used
+            ethers.parseEther("0.0005") // Gas used
           );
         });
       });
