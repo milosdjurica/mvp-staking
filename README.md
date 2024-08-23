@@ -1,18 +1,55 @@
-# Staking contract -> https://sepolia.etherscan.io/address/0x0ac9be9a27551ca471d71c1cc3cf0a89f6876243#code
+# Verified contracts on sepolia
 
-# StakingToken contract -> https://sepolia.etherscan.io/address/0x88ec70e2743405f414530187c6597d0b111262e7
+- Staking contract -> https://sepolia.etherscan.io/address/0x0ac9be9a27551ca471d71c1cc3cf0a89f6876243#code
 
-# Sample Hardhat Project
+- StakingToken contract -> https://sepolia.etherscan.io/address/0x88ec70e2743405f414530187c6597d0b111262e7
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+# Installation
 
-Try running some of the following tasks:
+1. Clone the repository
 
-```shell
-npx hardhat help
+```bash
+git clone https://github.com/milosdjurica/mvp-staking
+cd mvp-staking
+```
+
+2. Install dependencies
+
+```bash
+npm install
+```
+
+3. Create .env
+
+```
+PRIVATE_KEY="PRIVATE KEY HERE"
+SEPOLIA_RPC_URL="YOUR SEPOLIA RPC URL"
+ETHERSCAN_API_KEY="For verifying contracts"
+```
+
+# Deploying contract
+
+1. Run command
+
+```bash
+npx hardhat deploy --network sepolia
+```
+
+# Tests & Coverage
+
+## Testing
+
+1. Run tests
+
+```sh
 npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
+```
+
+## Coverage
+
+1. See coverage
+
+```sh
+npx hardhat coverage
 ```
 
