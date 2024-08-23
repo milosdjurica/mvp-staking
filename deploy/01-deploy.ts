@@ -5,6 +5,7 @@ import {
   SEPOLIA_PRICE_FEED_ADDRESS,
 } from "../utils/helperConfig";
 import { StakingToken } from "../typechain-types";
+import { verify } from "../utils/verify";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { getNamedAccounts, ethers, deployments, network } = hre;
@@ -45,6 +46,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
 
+  if (!IS_DEV_CHAIN && process.env.ETHERSCAN_API_KEY) {
+    log("Verifying contracts....");
+    await verify(stakingTokenDeploy.address, []);
+    await verify(stakingDeploy.address, STAKING_CONSTRUCTOR_ARGS);
+  }
   stakingToken.transferOwnership(stakingDeploy.address);
 };
 export default func;
